@@ -101,7 +101,8 @@ class Solver(object):
             print(("=> no checkpoint found at '{}'".format(resume_checkpoint)))
             return False
         print(("=> loading checkpoint '{:s}'".format(resume_checkpoint)))
-        checkpoint = torch.load(resume_checkpoint)
+        # checkpoint = torch.load(resume_checkpoint)
+        checkpoint = torch.load(cfg.RESUME_CHECKPOINT, map_location='cuda' if self.use_gpu else 'cpu')
 
         # print("=> Weigths in the checkpoints:")
         # print([k for k, v in list(checkpoint.items())])
@@ -157,7 +158,7 @@ class Solver(object):
 
         checkpoint.update(pretrained_dict)
 
-        return self.model.load_state_dict(checkpoint)
+        return self.model.load_state_dict(checkpoint, strict=False)
 
 
     def find_previous(self):
@@ -279,10 +280,12 @@ class Solver(object):
             images, targets = next(batch_iterator)
             if use_gpu:
                 images = Variable(images.cuda())
-                targets = [Variable(anno.cuda(), volatile=True) for anno in targets]
+                with torch.no_grad():
+                    targets = [Variable(anno.cuda()) for anno in targets]
             else:
                 images = Variable(images)
-                targets = [Variable(anno) for anno in targets]
+                with torch.no_grad():
+                    targets = [Variable(anno) for anno in targets]
             _t.tic()
             # forward
             out = model(images, phase='train')
@@ -347,10 +350,12 @@ class Solver(object):
             images, targets = next(batch_iterator)
             if use_gpu:
                 images = Variable(images.cuda())
-                targets = [Variable(anno.cuda(), volatile=True) for anno in targets]
+                with torch.no_grad():
+                    targets = [Variable(anno.cuda()) for anno in targets]
             else:
                 images = Variable(images)
-                targets = [Variable(anno, volatile=True) for anno in targets]
+                with torch.no_grad():
+                    targets = [Variable(anno) for anno in targets]
 
             _t.tic()
             # forward
@@ -477,7 +482,8 @@ class Solver(object):
             img = dataset.pull_image(i)
             scale = [img.shape[1], img.shape[0], img.shape[1], img.shape[0]]
             if use_gpu:
-                images = Variable(dataset.preproc(img)[0].unsqueeze(0).cuda())
+                with torch.no_grad():
+                    images = Variable(dataset.preproc(img)[0].unsqueeze(0).cuda())
             else:
                 with torch.no_grad():
                     images = Variable(dataset.preproc(img)[0].unsqueeze(0))

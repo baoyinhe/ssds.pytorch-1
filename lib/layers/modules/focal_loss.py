@@ -21,6 +21,12 @@ class FocalLoss(nn.Module):
         size_average(bool): size_average(bool): By default, the losses are averaged over observations for each minibatch.
                             However, if the field size_average is set to False, the losses are
                             instead summed for each minibatch.
+        reduction (string, optional): Specifies the reduction to apply to the output: 'none' | 'mean' | 'sum'. 
+                                    'none': no reduction will be applied, 
+                                    'mean': the sum of the output will be divided by the number of elements in the output, 
+                                    'sum': the output will be summed. 
+                                    Default: 'mean'
+                                    Note: size_average and reduce are in the process of being deprecated, and in the meantime, specifying either of those two args will override reduction. 
     """
 
     def __init__(self, cfg, priors, use_gpu=True):
@@ -78,7 +84,7 @@ class FocalLoss(nn.Module):
         pos_idx = pos.unsqueeze(pos.dim()).expand_as(loc_data)
         loc_p = loc_data[pos_idx].view(-1,4)
         loc_t = loc_t[pos_idx].view(-1,4)
-        loss_l = F.smooth_l1_loss(loc_p, loc_t, size_average=False)
+        loss_l = F.smooth_l1_loss(loc_p, loc_t, reduction='sum')
         loss_l/=num_pos.data.sum()
 
         # Confidence Loss (Focal loss)

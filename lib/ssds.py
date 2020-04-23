@@ -49,9 +49,9 @@ class ObjectDetector:
         if cfg.RESUME_CHECKPOINT == '':
             AssertionError('RESUME_CHECKPOINT can not be empty')
         print('=> loading checkpoint {:s}'.format(cfg.RESUME_CHECKPOINT))
-        checkpoint = torch.load(cfg.RESUME_CHECKPOINT)
-        # checkpoint = torch.load(cfg.RESUME_CHECKPOINT, map_location='gpu' if self.use_gpu else 'cpu')
-        self.model.load_state_dict(checkpoint)
+        # checkpoint = torch.load(cfg.RESUME_CHECKPOINT)
+        checkpoint = torch.load(cfg.RESUME_CHECKPOINT, map_location='cuda' if self.use_gpu else 'cpu')
+        self.model.load_state_dict(checkpoint, strict=False)
 
         # test only
         self.model.eval()
@@ -66,7 +66,8 @@ class ObjectDetector:
         
         # preprocess image
         _t['preprocess'].tic()
-        x = Variable(self.preprocessor(img)[0].unsqueeze(0),volatile=True)
+        with torch.no_grad():
+            x = Variable(self.preprocessor(img)[0].unsqueeze(0))
         if self.use_gpu:
             x = x.cuda()
         if self.half:

@@ -12,11 +12,15 @@ import cv2
 from lib.ssds import ObjectDetector
 from lib.utils.config_parse import cfg_from_file
 
-VOC_CLASSES = ( 'aeroplane', 'bicycle', 'bird', 'boat',
-    'bottle', 'bus', 'car', 'cat', 'chair',
-    'cow', 'diningtable', 'dog', 'horse',
-    'motorbike', 'person', 'pottedplant',
-    'sheep', 'sofa', 'train', 'tvmonitor')
+# VOC_CLASSES = ( 'aeroplane', 'bicycle', 'bird', 'boat',
+#     'bottle', 'bus', 'car', 'cat', 'chair',
+#     'cow', 'diningtable', 'dog', 'horse',
+#     'motorbike', 'person', 'pottedplant',
+#     'sheep', 'sofa', 'train', 'tvmonitor')
+
+VOC_CLASSES = ('bus', 'car',
+    'bicycle', 'motorbike', 'person',
+    'front_wheel', 'back_wheel', 'door')
 
 def parse_args():
     """
