@@ -43,3 +43,12 @@ Set the 'PHASE'='test'.
 ```
 python test.py --cfg=./experiments/cfgs/my_ssdlite_mobilenetv2_train_voc.yml
 ```
+# visualize the loss and learning_rate
+```
+cd ./experiments/models/ssd_mobilenet_v2_voc
+tensorboard --logdir .
+```
+# demo
+```
+python demo.py --cfg=./experiments/cfgs/my_ssdlite_mobilenetv2_train_voc.yml --demo=./experiments/person.jpg -t=image
+```
