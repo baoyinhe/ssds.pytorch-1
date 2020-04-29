@@ -92,8 +92,9 @@ def cal_tp_fp(detects, ground_turths, label, score, npos, gt_label, iou_threshol
     '''
     '''
     for det, gt in zip(detects, ground_turths):
-        for i, det_c in enumerate(det):            
-            gt_c = [_gt[:4].data.resize_(1,4) for _gt in gt if int(_gt[4]) == i] 
+        for i, det_c in enumerate(det):
+            with torch.no_grad():            
+                gt_c = [_gt[:4].resize_(1,4) for _gt in gt if int(_gt[4]) == i] 
             iou_c = []
             ioa_c = []
             score_c = []
@@ -151,8 +152,9 @@ def cal_tp_fp(detects, ground_turths, label, score, npos, gt_label, iou_threshol
 
 def cal_size(detects, ground_turths, size):
     for det, gt in zip(detects, ground_turths):
-        for i, det_c in enumerate(det):  
-            gt_c = [_gt[:4].data.resize_(1,4) for _gt in gt if int(_gt[4]) == i] 
+        for i, det_c in enumerate(det):
+            with torch.no_grad():
+                gt_c = [_gt[:4].resize_(1,4) for _gt in gt if int(_gt[4]) == i] 
             if len(gt_c) == 0:
                 continue
             gt_size_c = [ [(_gt[0][2] - _gt[0][0]), (_gt[0][3] - _gt[0][1])] for _gt in gt_c ]
