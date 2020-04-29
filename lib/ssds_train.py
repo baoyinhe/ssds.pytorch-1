@@ -158,7 +158,7 @@ class Solver(object):
 
         checkpoint.update(pretrained_dict)
 
-        return self.model.load_state_dict(checkpoint, strict=False)
+        return self.model.load_state_dict(checkpoint)
 
 
     def find_previous(self):
@@ -326,6 +326,7 @@ class Solver(object):
         # log for tensorboard
         writer.add_scalar('Train/loc_loss', loc_loss/epoch_size, epoch)
         writer.add_scalar('Train/conf_loss', conf_loss/epoch_size, epoch)
+        writer.add_scalar('Train/loss', conf_loss/epoch_size + loc_loss/epoch_size, epoch)
         writer.add_scalar('Train/lr', lr, epoch)
 
 
@@ -545,7 +546,8 @@ class Solver(object):
         # preproc.p = 0.6
 
         # preproc image & visualize preprocess prograss
-        images = Variable(preproc(image, anno)[0].unsqueeze(0), volatile=True)
+        with torch.no_grad():
+            images = Variable(preproc(image, anno)[0].unsqueeze(0))
         if use_gpu:
             images = images.cuda()
 
@@ -557,9 +559,9 @@ class Solver(object):
 
         model.train()
         images.requires_grad = True
-        images.volatile=False
+        # images.volatile=False
         base_out = viz_module_grads(writer, model, model.base, images, images, preproc.means, module_name='base', epoch=epoch)
-
+        print('Done.')
         # TODO: add more...
 
 
@@ -585,8 +587,10 @@ class Solver(object):
             scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=cfg.STEPS, gamma=cfg.GAMMA)
         elif cfg.SCHEDULER == 'exponential':
             scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=cfg.GAMMA)
+        elif cfg.SCHEDULER == 'SGDr':
+            scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg.MAX_EPOCHS)    
         elif cfg.SCHEDULER == 'SGDR':
-            scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg.MAX_EPOCHS)
+            scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=cfg.T_0, T_mult=cfg.T_MULT, eta_min=cfg.ETA_MIN)
         else:
             AssertionError('scheduler can not be recognized.')
         return scheduler
