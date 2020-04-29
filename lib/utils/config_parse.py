@@ -122,6 +122,12 @@ __C.TRAIN.LR_SCHEDULER.GAMMA = 0.98
 __C.TRAIN.LR_SCHEDULER.WARM_UP_EPOCHS = 0
 # The number of max iters
 __C.TRAIN.LR_SCHEDULER.MAX_EPOCHS = __C.TRAIN.MAX_EPOCHS - __C.TRAIN.LR_SCHEDULER.WARM_UP_EPOCHS
+# The number of iterations for the first restart.
+__C.TRAIN.LR_SCHEDULER.T_0 = 50
+# Traing T-mult epoches after a restart.
+__C.TRAIN.LR_SCHEDULER.T_MULT = 1
+# Minimum learning rate. 
+__C.TRAIN.LR_SCHEDULER.ETA_MIN = 1e-5
 
 # ---------------------------------------------------------------------------- #
 # Test options
