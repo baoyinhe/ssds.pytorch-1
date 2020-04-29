@@ -51,7 +51,7 @@ class ObjectDetector:
         print('=> loading checkpoint {:s}'.format(cfg.RESUME_CHECKPOINT))
         # checkpoint = torch.load(cfg.RESUME_CHECKPOINT)
         checkpoint = torch.load(cfg.RESUME_CHECKPOINT, map_location='cuda' if self.use_gpu else 'cpu')
-        self.model.load_state_dict(checkpoint, strict=False)
+        self.model.load_state_dict(checkpoint)
 
         # test only
         self.model.eval()
