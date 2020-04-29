@@ -9,7 +9,7 @@ def images_to_writer(writer, images, prefix='image', names='image', epoch=0):
         names = [names+'_{}'.format(i) for i in range(len(images))]
 
     for image, name in zip(images, names):
-        writer.add_image('{}/{}'.format(prefix, name), image, epoch)
+        writer.add_image('{}/{}'.format(prefix, name), image, epoch, dataformats='HWC')
 
 
 def to_grayscale(image):
@@ -116,7 +116,7 @@ def viz_prior_box(writer, prior_box, image=None, epoch=0):
     elif isinstance(image, str):
         image = cv2.imread(image, -1)
     image = cv2.resize(image, (prior_box.image_size[0], prior_box.image_size[1]))
-    
+
     for k, f in enumerate(prior_box.feature_maps):
         bbxs = []
         image_show = image.copy()
@@ -151,7 +151,7 @@ def viz_prior_box(writer, prior_box, image=None, epoch=0):
             if archor[0] == archor[1]:
                 cv2.rectangle(image_show, (bbx[0], bbx[1]), (bbx[2], bbx[3]), (0, 255, 0), 1)
 
-        writer.add_image('example_prior_boxs/feature_map_{}'.format(k), image_show, epoch)
+        writer.add_image('example_prior_boxs/feature_map_{}'.format(k), image_show, epoch, dataformats='HWC')
 
 
 def add_pr_curve_raw(writer, tag, precision, recall, epoch=0):
