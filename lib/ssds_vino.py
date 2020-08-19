@@ -64,7 +64,7 @@ class ObjectDetector:
         # assert img.shape[2] == 3
         # scale = torch.Tensor([img.shape[1::-1], img.shape[1::-1]])
         # scale = [img.shape[1], img.shape[0], img.shape[1], img.shape[0]]
-        scale = [w, h, w, h]
+        scale = torch.Tensor([w, h, w, h])
 
         _t = {'preprocess': Timer(), 'net_forward': Timer(), 'detect': Timer(), 'output': Timer()}
         

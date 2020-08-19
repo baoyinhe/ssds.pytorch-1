@@ -108,8 +108,8 @@ def main():
         log.info("File was added: ")
         log.info("        {}".format(args.input[i]))
         if (ih, iw) != (h, w):
-            image = cv2.resize(image, (w, h))
             log.warning("Image {} is resized from {} to {}".format(args.input[i], image.shape[:-1], (h, w)))
+            image = cv2.resize(image, (w, h))
         image = image.transpose((2, 0, 1))  # Change data layout from HWC to CHW
         images[i] = image
     # -----------------------------------------------------------------------------------------------------
@@ -126,7 +126,7 @@ def main():
         if len(net.inputs[input_key].layout) == 4:
             input_name = input_key
             log.info("Batch size is {}".format(net.batch_size))
-            net.inputs[input_key].precision = 'FP16'
+            net.inputs[input_key].precision = 'U8'
         elif len(net.inputs[input_key].layout) == 2:
             input_info_name = input_key
             net.inputs[input_key].precision = 'FP32'
@@ -136,13 +136,13 @@ def main():
     # --------------------------- Prepare output blobs ----------------------------------------------------
     log.info('Preparing output blobs')
 
-    # output_conf, conf_info = "", net.outputs[next(iter(net.outputs.keys()))]
+    output_conf, conf_info = "", net.outputs[next(iter(net.outputs.keys()))]
 
-    # for output_key in net.outputs:
-    #     if net.layers[output_key].type == "SoftMax":
-    #         output_conf, conf_info = output_key, net.outputs[output_key]
-    #     if net.layers[output_key].type == "Reshape":
-    #         output_loc, loc_info = output_key, net.outputs[output_key]
+    for output_key in net.outputs:
+        if net.layers[output_key].type == "SoftMax":
+            output_conf, conf_info = output_key, net.outputs[output_key]
+        if net.layers[output_key].type == "Reshape":
+            output_loc, loc_info = output_key, net.outputs[output_key]
 
     # if output_name == "":
     #     log.error("Can't find a DetectionOutput layer in the topology")
@@ -156,8 +156,8 @@ def main():
     # if object_size != 7:
     #     log.error("Output item should have 7 as a last dimension")
 
-    # conf_info.precision = "FP16"
-    # loc_info.precision = "FP16"
+    conf_info.precision = "FP32"
+    loc_info.precision = "FP32"
     
     # --------------------------Prepare priorbox-------------------------------------
     log.info("Preparing priorboxes")
@@ -178,66 +178,32 @@ def main():
 
     # --------------------------- Read and postprocess output ---------------------------------------------
     log.info("Processing output blobs")
-    conf = res['conf']
-    loc = res['loc']
+    conf = res['742']
+    loc = res['output']
     _labels, _scores, _coords = object_detector.predict(images_raw[0].shape[0], images_raw[0].shape[1], loc, conf)
-    print(_labels, _scores, _coords)
 
-    imageshow = cv2.resize(images_raw[0], (600,600))
+    # imageshow = cv2.resize(images_raw[0], (600,600))
+
     # draw bounding box on the image
     if len(_labels) == 0:
         log.info("Nothing was detected!")
         exit(0)
     else:
         for labels, scores, coords in zip(_labels, _scores, _coords):
-            cv2.rectangle(imageshow, (int(coords[0]), int(coords[1])), (int(coords[2]), int(coords[3])), COLORS[labels % 3], 2)
-            cv2.putText(imageshow, '{label}: {score:.3f}'.format(label=VOC_CLASSES[labels], score=scores), (int(coords[0]), int(coords[1])), FONT, 0.5, COLORS[labels % 3], 2)
+            cv2.rectangle(images_raw[0], (int(coords[0]), int(coords[1])), (int(coords[2]), int(coords[3])), COLORS[labels % 3], 2)
+            cv2.putText(images_raw[0], '{label}: {score:.3f}'.format(label=VOC_CLASSES[labels], score=scores), (int(coords[0]), int(coords[1])), FONT, 0.5, COLORS[labels % 3], 2)
     
     # visualize result
     if args.display is True:
-        cv2.imshow('result', imageshow)
+        cv2.imshow('result', images_raw[0])
         cv2.waitKey(0)
 
     
     #  write result
     if args.save is True:
         path, _ = os.path.splitext(args.input[0])
-        cv2.imwrite(path + '_result.bmp', imageshow)
+        cv2.imwrite(path + '_result.bmp', images_raw[0])
         log.info("Image out.bmp created!")
-    # boxes, classes = {}, {}
-    # data = res[0][0]
-    # print(data.dtype)
-    # data = data.astype(np.uint8)
-    # print(data.dtype)
-    # for number, proposal in enumerate(data):
-    #     if proposal[2] > 0:
-    #         imid = np.int(proposal[0])
-    #         ih, iw = images_hw[imid]
-    #         label = np.int(proposal[1])
-    #         confidence = proposal[2]
-    #         xmin = np.int(iw * proposal[3])
-    #         ymin = np.int(ih * proposal[4])
-    #         xmax = np.int(iw * proposal[5])
-    #         ymax = np.int(ih * proposal[6])
-    #         print("[{},{}] element, prob = {:.6}    ({},{})-({},{}) batch id : {}"\
-    #             .format(number, label, confidence, xmin, ymin, xmax, ymax, imid), end="")
-    #         if proposal[2] > 0.5:
-    #             print(" WILL BE PRINTED!")
-    #             if not imid in boxes.keys():
-    #                 boxes[imid] = []
-    #             boxes[imid].append([xmin, ymin, xmax, ymax])
-    #             if not imid in classes.keys():
-    #                 classes[imid] = []
-    #             classes[imid].append(label)
-    #         else:
-    #             print()
-
-    # for imid in classes:
-    #     tmp_image = cv2.imread(args.input[imid])
-    #     for box in boxes[imid]:
-    #         cv2.rectangle(tmp_image, (box[0], box[1]), (box[2], box[3]), (232, 35, 244), 2)
-    #     cv2.imwrite("out.bmp", tmp_image)
-    #     log.info("Image out.bmp created!")
     # -----------------------------------------------------------------------------------------------------
 
     log.info("Execution successful\n")
